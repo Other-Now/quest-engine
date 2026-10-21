@@ -21,7 +21,7 @@ struct Successor {
     std::vector<std::string> moves;
 };
 
-void applyBranching(const Content& c, const DialogueLibrary& lib, const std::vector<Effect>& fx, int room,
+void applyBranching(const DialogueLibrary& lib, const std::vector<Effect>& fx, int room,
                     Store s, std::vector<std::string> moves, std::vector<Successor>& out) {
     for (size_t i = 0; i < fx.size(); ++i) {
         const Effect& e = fx[i];
@@ -58,15 +58,15 @@ std::vector<Successor> successors(const Content& c, const DialogueLibrary& lib, 
         if (!h.visible.holds(s)) continue;
         for (Verb v : {Verb::Walk, Verb::Look, Verb::Use, Verb::Talk})
             if (const Rule* r = c.findRule(room, h.id, v, -1, s))
-                applyBranching(c, lib, r->effects, room, s, {std::string(verbName(v)) + " " + h.id}, out);
+                applyBranching(lib, r->effects, room, s, {std::string(verbName(v)) + " " + h.id}, out);
         for (int it : held)
             if (const Rule* r = c.findRule(room, h.id, Verb::Use, it, s))
-                applyBranching(c, lib, r->effects, room, s, {"use " + c.items[size_t(it)].id + " " + h.id}, out);
+                applyBranching(lib, r->effects, room, s, {"use " + c.items[size_t(it)].id + " " + h.id}, out);
     }
     for (size_t i = 0; i < held.size(); ++i)
         for (size_t j = i + 1; j < held.size(); ++j)
             if (const Combo* cb = c.findCombo(held[i], held[j], s))
-                applyBranching(c, lib, cb->effects, room, s,
+                applyBranching(lib, cb->effects, room, s,
                                {"combine " + c.items[size_t(held[i])].id + " " + c.items[size_t(held[j])].id}, out);
     return out;
 }

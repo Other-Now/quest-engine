@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Keeper's Amulet</title>
+<style>
+  :root { color-scheme: dark; }
+  body { margin: 0; background: #14111f; color: #ddd; font: 14px/1.5 system-ui, sans-serif;
+         display: flex; flex-direction: column; align-items: center; padding: 16px; }
+  canvas { width: min(960px, 100%); aspect-ratio: 4 / 3; image-rendering: pixelated; background: #000;
+           cursor: none; outline: none; }
+  p { max-width: 960px; margin: 10px 0; }
+  a { color: #8cf; }
+  kbd { background: #2a2540; border-radius: 3px; padding: 0 4px; }
+  #status { color: #999; }
+</style>
+</head>
+<body>
+<canvas id="canvas" oncontextmenu="event.preventDefault()" tabindex="-1"></canvas>
+<p id="status">Loading...</p>
+<p>Click to walk. Pick <b>Look</b>, <b>Use</b> or <b>Talk</b>, then click something. Click an item to use it on
+something else (or on another item). Right-click cancels. <kbd>F2</kbd> shows the walkable area and pathfinding
+graph. <a href="?script">Watch the walkthrough</a> &middot;
+<a href="https://github.com/Other-Now/quest-engine">Source</a></p>
+<script>
+  const q = new URLSearchParams(location.search);
+  const args = [];
+  if (q.has('script') || q.has('bench')) args.push('--script', '/assets/walkthrough.txt');
+  if (q.has('bench')) args.push('--bench');
+  if (q.has('debug')) args.push('--debug');
+  var Module = {
+    canvas: document.getElementById('canvas'),
+    arguments: args,
+    print: (t) => { console.log(t); if (t.startsWith('FRAMES')) document.getElementById('status').textContent = t; },
+    printErr: (t) => console.error(t),
+    setStatus: (t) => { document.getElementById('status').textContent = t || 'Running.'; },
+  };
+</script>
+{{{ SCRIPT }}}
+</body>
+</html>

@@ -1,0 +1,110 @@
+name: ci
+on: [push, pull_request, workflow_dispatch]
+
+jobs:
+  linux:
+    strategy:
+      fail-fast: false
+      matrix:
+        cxx: [g++, clang++]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: deps
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq libsdl2-dev ninja-build
+      - name: build
+        run: |
+          cmake -S . -B build -G Ninja -DCMAKE_CXX_COMPILER=${{ matrix.cxx }} -DCMAKE_BUILD_TYPE=Release
+          cmake --build build
+      - name: unit tests, solver, walkthrough, committed replay
+        run: ctest --test-dir build --output-on-failure
+      - name: puzzle solver report
+        run: ./build/qe-solve assets | tee solver.txt
+      - name: walkthrough start to credits
+        run: ./build/qe-headless assets --script assets/walkthrough.txt --record walk.qrp --expect-win
+      - name: replay the recording made on Windows/MSVC
+        run: ./build/qe-headless assets --replay tests/data/walkthrough.qrp --sim-bench 50
+
+  macos:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - run: brew install sdl2 ninja
+      - name: build
+        run: |
+          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+          cmake --build build
+      - name: tests (incl. walkthrough + committed replay)
+        run: ctest --test-dir build --output-on-failure
+
+  windows:
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+      - name: SDL2 (VC dev package)
+        shell: pwsh
+        run: |
+          Invoke-WebRequest https://github.com/libsdl-org/SDL/releases/download/release-2.32.10/SDL2-devel-2.32.10-VC.zip -OutFile sdl2.zip
+          Expand-Archive sdl2.zip -DestinationPath C:\sdl
+      - name: build
+        run: |
+          cmake -S . -B build -A x64 -DSDL2_DIR=C:/sdl/SDL2-2.32.10/cmake
+          cmake --build build --config Release
+      - name: tests
+        run: ctest --test-dir build -C Release --output-on-failure
+
+  ink:
+    # The shipped .ink.json must match what inklecate makes from the writer's .ink.
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: inklecate 1.1.1
+        run: |
+          curl -sSL -o inklecate.zip https://github.com/inkle/ink/releases/download/v1.1.1/inklecate_linux.zip
+          echo "26f4e188e02536d6e99e73e71d9b13e2c2144187f1368a87e82fd5066176cff8  inklecate.zip" | sha256sum -c
+          mkdir -p ~/inklecate && unzip -q inklecate.zip -d ~/inklecate && chmod +x ~/inklecate/inklecate
+      - name: recompile and compare
+        run: |
+          INKLECATE=~/inklecate/inklecate tools/compile_ink.sh
+          git diff --exit-code -- '*.ink.json'
+
+  web:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: mymindstorm/setup-emsdk@v14
+        with:
+          version: 3.1.74
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: build (wasm)
+        run: |
+          emcmake cmake -S . -B build-web -DCMAKE_BUILD_TYPE=Release
+          cmake --build build-web -j4
+      - name: tests and the committed replay, running as wasm under node
+        run: |
+          node build-web/qe-tests.js
+          node build-web/qe-headless.js assets --replay tests/data/walkthrough.qrp
+          node build-web/qe-solve.js assets
+      - name: site
+        run: |
+          mkdir site
+          cp build-web/index.html build-web/index.js build-web/index.wasm build-web/index.data site/
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    needs: [linux, macos, windows, web, ink]
+    runs-on: ubuntu-24.04
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

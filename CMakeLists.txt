@@ -11,6 +11,13 @@ endif()
 option(QE_FRONTEND "Build the SDL2 game (off = headless core, tools and tests only)" ON)
 option(QE_TESTS "Build the tests" ON)
 
+if(EMSCRIPTEN)
+  # Content errors and the tests rely on catching exceptions; Emscripten
+  # aborts on throw unless this is on.
+  add_compile_options(-fexceptions)
+  add_link_options(-fexceptions)
+endif()
+
 include(cmake/inkcpp.cmake)
 
 if(MSVC)
@@ -58,8 +65,7 @@ if(QE_FRONTEND)
     target_compile_options(quest PRIVATE -sUSE_SDL=2)
     target_link_options(quest PRIVATE -sUSE_SDL=2 -sALLOW_MEMORY_GROWTH=1
       --preload-file ${CMAKE_SOURCE_DIR}/assets@/assets
-      --shell-file ${CMAKE_SOURCE_DIR}/web/shell.html
-      -sEXPORTED_RUNTIME_METHODS=[callMain])
+      --shell-file ${CMAKE_SOURCE_DIR}/web/shell.html)
     set_target_properties(quest PROPERTIES SUFFIX ".html" OUTPUT_NAME index)
   else()
     find_package(SDL2 REQUIRED CONFIG)
