@@ -283,6 +283,8 @@ int main(int argc, char** argv) {
         std::fprintf(stderr, "SDL window/renderer: %s\n", SDL_GetError());
         return 1;
     }
+    SDL_RendererInfo info;
+    if (SDL_GetRendererInfo(app.sdl, &info) == 0) std::printf("renderer: %s\n", info.name);
     SDL_RenderSetLogicalSize(app.sdl, kScreenW, kScreenH);
     SDL_RenderSetIntegerScale(app.sdl, SDL_TRUE);
     SDL_ShowCursor(SDL_DISABLE);

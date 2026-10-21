@@ -41,6 +41,12 @@ target_include_directories(qe_core PUBLIC src)
 target_include_directories(qe_core SYSTEM PUBLIC third_party)
 target_link_libraries(qe_core PUBLIC qe_inkcpp)
 target_compile_options(qe_core PRIVATE ${QE_WARN})
+if(NOT MSVC)
+  # Replays must match bit for bit across compilers and CPUs. Clang and GCC
+  # may fuse a*b+c into one FMA on hardware that has it (arm64), which rounds
+  # differently; MSVC's default /fp:precise does not contract.
+  target_compile_options(qe_core PUBLIC -ffp-contract=off)
+endif()
 
 add_executable(qe-headless tools/qe_headless.cpp)
 target_link_libraries(qe-headless PRIVATE qe_core)
