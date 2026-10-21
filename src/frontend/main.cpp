@@ -2,7 +2,7 @@
 // recording/replay, and frame-time measurement.
 //
 //   quest [--assets DIR] [--record OUT.qrp] [--replay IN.qrp | --script WALKTHROUGH.txt]
-//         [--bench] [--no-vsync] [--debug] [--screenshot-at TICK OUT.bmp]
+//         [--bench] [--no-vsync] [--debug] [--screenshot-at TICK OUT.bmp [--quit-after-shot]]
 //
 // Keys: F2 debug overlay (walkable area, visibility graph, path, hotspots),
 //       F5 save, F9 load, Esc quit.
@@ -53,7 +53,7 @@ double nowMs() {
 
 struct App {
     std::string assets = "assets", recordPath, replayPath, scriptPath, shotPath, savePath = "saves/slot1.json";
-    bool bench = false, vsync = true, debug = false, running = true;
+    bool bench = false, vsync = true, debug = false, running = true, quitAfterShot = false;
     uint32_t shotTick = 0;
 
     SDL_Window* window = nullptr;
@@ -180,6 +180,7 @@ struct App {
             SDL_FreeSurface(s);
             std::printf("screenshot %s at tick %u\n", shotPath.c_str(), game->tickCount());
             shotPath.clear();
+            if (quitAfterShot) running = false;
         }
         SDL_RenderPresent(sdl);
 
@@ -238,6 +239,7 @@ int main(int argc, char** argv) {
         else if (a == "--bench") app.bench = true;
         else if (a == "--no-vsync") app.vsync = false;
         else if (a == "--debug") app.debug = true;
+        else if (a == "--quit-after-shot") app.quitAfterShot = true;
         else if (a == "--screenshot-at") {
             app.shotTick = uint32_t(std::stoul(next()));
             app.shotPath = next();
