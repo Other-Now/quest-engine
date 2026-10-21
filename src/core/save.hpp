@@ -14,13 +14,20 @@
 
 namespace qe {
 
-constexpr int kSaveFormat = 1;
+// Format history:
+//   1  flat: room, x, y, facing, tick, vars
+//   2  player fields grouped under "player"; "meta" (title, room, play time)
+//      added so a load prompt can describe the slot without loading it
+constexpr int kSaveFormat = 2;
 
 nlohmann::json saveGame(const Game& g);
 // Throws std::runtime_error if the save cannot be understood.
 void loadGame(Game& g, nlohmann::json doc);
 // Exposed for tests: upgrade a document to kSaveFormat in place.
 void migrateSave(nlohmann::json& doc);
+
+// One-line description for a load prompt, e.g. "village, 0:24 played".
+std::string describeSave(const nlohmann::json& doc);
 
 void saveGameFile(const Game& g, const std::string& path);
 void loadGameFile(Game& g, const std::string& path);

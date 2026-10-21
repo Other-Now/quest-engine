@@ -112,8 +112,9 @@ struct App {
         }
         if (k == SDLK_F9) {
             try {
-                loadGameFile(*game, savePath);
-                std::printf("loaded %s\n", savePath.c_str());
+                auto doc = nlohmann::json::parse(readFile(savePath));
+                std::printf("loading %s (%s)\n", savePath.c_str(), describeSave(doc).c_str());
+                loadGame(*game, doc);
             } catch (const std::exception& e) {
                 std::printf("load failed: %s\n", e.what());
             }

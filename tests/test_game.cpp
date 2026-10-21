@@ -66,6 +66,57 @@ TEST("game: unknown variables in a save are dropped, missing ones get defaults")
     CHECK(g.store().id("no_longer_exists") < 0);
 }
 
+TEST("save: a v1 file written by the v1 code migrates, loads and can be finished") {
+    // tests/data/save_v1.json was written by commit 9e01d7a (format 1), after
+    // the first 11 walkthrough commands.
+    auto doc = nlohmann::json::parse(readFile(qt::data("tests/data/save_v1.json")));
+    CHECK(doc["format"] == 1);
+    CHECK(describeSave(doc) == "village, 0:24 played");
+    Game g(content());
+    loadGame(g, doc);
+    CHECK(g.room().id == "village");
+    CHECK(g.store().get("has_mushroom") == 1);
+    CHECK(g.playerPos() == Vec2{12, 136});
+    CHECK(g.tickCount() == 1491u);
+    auto lines = script();
+    std::vector<std::string> rest(lines.begin() + 11, lines.end());
+    CHECK(runWalkthrough(g, rest, 400000, true).ok);
+    CHECK(g.mode() == Mode::Credits);
+    // Saving again writes the current format.
+    CHECK(saveGame(g)["format"] == kSaveFormat);
+}
+
+TEST("save: formats from the future are refused") {
+    Game g(content());
+    auto doc = saveGame(g);
+    doc["format"] = kSaveFormat + 1;
+    bool threw = false;
+    try {
+        loadGame(g, doc);
+    } catch (const std::runtime_error&) {
+        threw = true;
+    }
+    CHECK(threw);
+}
+
+TEST("save: content renames carry old variable names forward") {
+    // Revision 2 of the content renamed glint_seen -> saw_glint; a revision-1
+    // save still says glint_seen.
+    auto c = std::make_shared<Content>(*content());
+    c->revision = 2;
+    c->renames[2] = {{"glint_seen", "saw_glint"}};
+    Game g(c);
+    auto doc = saveGame(g);
+    doc["content_rev"] = 1;
+    doc["vars"].erase("saw_glint");
+    doc["vars"]["glint_seen"] = 1;
+    loadGame(g, doc);
+    CHECK(g.store().get("saw_glint") == 1);
+    doc["content_rev"] = 2;  // already current: no rename, unknown name dropped
+    loadGame(g, doc);
+    CHECK(g.store().get("saw_glint") == 0);
+}
+
 TEST("game: hot reload keeps progress") {
     Game g(content());
     auto lines = script();
