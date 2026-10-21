@@ -48,7 +48,14 @@ struct FrameStats {
 };
 
 double nowMs() {
+#ifdef __EMSCRIPTEN__
+    // SDL_GetPerformanceCounter only ticked in whole milliseconds in the web
+    // build (every frame measured 0 or 1 ms). performance.now() is finer
+    // (Chrome clamps it to 0.1 ms on a page without cross-origin isolation).
+    return emscripten_get_now();
+#else
     return 1000.0 * double(SDL_GetPerformanceCounter()) / double(SDL_GetPerformanceFrequency());
+#endif
 }
 
 struct App {
