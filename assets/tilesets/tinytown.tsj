@@ -1,0 +1,15 @@
+{
+ "type": "tileset",
+ "version": "1.10",
+ "tiledversion": "1.11.0",
+ "name": "tinytown",
+ "image": "tinytown.png",
+ "imagewidth": 192,
+ "imageheight": 176,
+ "tilewidth": 16,
+ "tileheight": 16,
+ "columns": 12,
+ "tilecount": 132,
+ "margin": 0,
+ "spacing": 0
+}

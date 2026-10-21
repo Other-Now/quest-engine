@@ -1,0 +1,15 @@
+{
+ "type": "tileset",
+ "version": "1.10",
+ "tiledversion": "1.11.0",
+ "name": "urban",
+ "image": "urban.png",
+ "imagewidth": 432,
+ "imageheight": 288,
+ "tilewidth": 16,
+ "tileheight": 16,
+ "columns": 27,
+ "tilecount": 486,
+ "margin": 0,
+ "spacing": 0
+}

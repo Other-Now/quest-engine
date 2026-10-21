@@ -1,0 +1,30 @@
+{
+  "content_rev": 1,
+  "facing": 3,
+  "format": 1,
+  "room": "village",
+  "tick": 1491,
+  "vars": {
+    "asked_crypt": 1,
+    "asked_key": 1,
+    "branch_cleared": 0,
+    "bucket_taken": 1,
+    "chest_open": 0,
+    "game_won": 0,
+    "gate_open": 0,
+    "has_amulet": 0,
+    "has_axe": 0,
+    "has_bucket": 1,
+    "has_gate_key": 0,
+    "has_mushroom": 1,
+    "has_rope": 0,
+    "has_rope_bucket": 0,
+    "key_in_well": 1,
+    "mushroom_taken": 1,
+    "rope_taken": 0,
+    "saw_glint": 1,
+    "tobin_has_axe": 1
+  },
+  "x": 12.0,
+  "y": 136.0
+}

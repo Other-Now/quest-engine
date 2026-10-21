@@ -1,0 +1,28 @@
+# The Keeper's Amulet: walkthrough, start to credits.
+# Played by the bot in CI (qe-headless --script); each line becomes the clicks
+# a player would make. "choose N" picks the Nth dialogue option on screen.
+
+use bucket                  # cottage: take the bucket
+walk door
+look well                   # something glints at the bottom
+talk tobin
+choose 1                    # What's in the old crypt?
+choose 1                    # I saw something shiny down the well.
+choose 1                    # Could I borrow your axe? -> wants a mushroom
+choose 2                    # Bye, Tobin.
+walk exit_orchard
+use mushroom
+walk exit_village
+use mushroom tobin          # opens the conversation
+choose 1                    # Could I borrow your axe?
+choose 1                    # Give him the mushroom.
+choose 1                    # Bye, Tobin.
+walk exit_orchard
+use axe branch
+use shed                    # rope
+walk exit_village
+combine rope bucket
+use rope_bucket well        # the iron key
+use gate_key crypt_gate
+walk crypt_gate
+use axe chest               # the amulet -> credits
